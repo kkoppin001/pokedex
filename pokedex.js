@@ -21,8 +21,23 @@ window.onload = async function() {
 
 function updatePokemon() {
     document.getElementById("pokemon-img").src = pokedex[this.id]["img"];
-}
 
+    let typesDiv = document.getElementById("pokemon-types");
+    
+    while (typesDiv.firstChild) {
+        typesDiv.firstChild.remove();
+    }
+
+    let types = pokedex[this.id]["types"];
+
+    for (let i = 0; i < types.length; i ++){
+        let type = document.createElement("span");
+        type.innerText = types[i]["type"]["name"].toUpperCase();
+        type.classList.add("type-box");
+        type.classList.add(types[i]["type"]["name"]); //add bg and fot color
+        typesDiv.append(type);
+    }
+}
 
 async function getPokemon(num) {
     let url = "https://pokeapi.co/api/v2/pokemon/" + num.toString();
