@@ -1,20 +1,28 @@
 const pokemonCount = 151;
 var pokedex = {}; // {1 : {"name" : "bulbasaur", "img" : url, "type" : ["grass, poison"], "des" : ...}}
 
+
 window.onload = async function() {
 
-    for (let i = 1; i < pokemonCount; i ++){
+    for (let i = 1; i <= pokemonCount; i++) {
         await getPokemon(i);
-        
+
         let pokemon = document.createElement("div");
-        pokemon.id = 1;
+        pokemon.id = i;
         pokemon.innerText = i.toString() + ". " + pokedex[i]["name"].toUpperCase();
         pokemon.classList.add("pokemon-name");
+        pokemon.addEventListener("click", updatePokemon);
+
         document.getElementById("pokemon-list").append(pokemon);
     }
 
     console.log(pokedex);
 }
+
+function updatePokemon() {
+    document.getElementById("pokemon-img").src = pokedex[this.id]["img"];
+}
+
 
 async function getPokemon(num) {
     let url = "https://pokeapi.co/api/v2/pokemon/" + num.toString();
