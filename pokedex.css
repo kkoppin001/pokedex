@@ -168,4 +168,5 @@ body {
     padding: 2px;
     font-size: 16px;
     overflow-y: auto;
+    display: none;
 }
