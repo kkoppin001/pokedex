@@ -1,63 +1,214 @@
-const pokemonCount = 151;
-var pokedex = {}; // {1 : {"name" : "bulbasaur", "img" : url, "type" : ["grass, poison"], "des" : ...}}
+const generations = {
+    1: [1, 151],
+    2: [152, 251],
+    3: [252, 386],
+    4: [387, 493],
+    5: [494, 649],
+    6: [650, 721],
+    7: [722, 809],
+    8: [810, 905],
+    9: [906, 1025]
+};
 
+var pokedex = {};
+
+let currentGeneration = 1;
+let selectedPokemon = null;
 
 window.onload = async function() {
 
-    for (let i = 1; i <= pokemonCount; i++) {
-        await getPokemon(i);
+    let tabs = document.querySelectorAll(".gen-tab");
 
-        let pokemon = document.createElement("div");
-        pokemon.id = i;
-        pokemon.innerText = i.toString() + ". " + pokedex[i]["name"].toUpperCase();
-        pokemon.classList.add("pokemon-name");
-        pokemon.addEventListener("click", updatePokemon);
+    tabs.forEach(tab => {
+        tab.addEventListener("click", async function() {
 
-        document.getElementById("pokemon-list").append(pokemon);
+            let gen = Number(this.dataset.gen);
+
+            if (gen === currentGeneration) return;
+
+            currentGeneration = gen;
+
+            tabs.forEach(t => t.classList.remove("active"));
+            this.classList.add("active");
+
+            resetPokemon();
+
+            await loadGeneration(gen);
+        });
+    });
+
+    await loadGeneration(1);
+};
+
+async function loadGeneration(gen) {
+
+    let pokemonList = document.getElementById("pokemon-list");
+
+    pokemonList.innerHTML = "Loading Pokémon...";
+
+    let [start, end] = generations[gen];
+
+    try {
+        let url = "https://pokeapi.co/api/v2/generation/" + gen;
+
+        let res = await fetch(url);
+
+        if (!res.ok) {
+            throw new Error("Failed to load generation " + gen);
+        }
+
+        let data = await res.json();
+
+        let species = data["pokemon_species"].map(pokemon => {
+
+            let parts = pokemon.url.split("/").filter(Boolean);
+
+            return {
+                "name": pokemon.name,
+                "id": Number(parts[parts.length - 1])
+            };
+        });
+
+        species = species
+            .filter(pokemon =>
+                pokemon.id >= start && pokemon.id <= end
+            )
+            .sort((a, b) => a.id - b.id);
+
+        if (gen !== currentGeneration) return;
+
+        pokemonList.innerHTML = "";
+
+        for (let pokemonData of species) {
+
+            let pokemon = document.createElement("div");
+
+            pokemon.id = pokemonData.id;
+
+            pokemon.innerText =
+                pokemonData.id + ". " +
+                pokemonData.name.toUpperCase();
+
+            pokemon.classList.add("pokemon-name");
+
+            pokemon.addEventListener("click", updatePokemon);
+
+            pokemonList.append(pokemon);
+        }
+
+        pokemonList.scrollTop = 0;
+
+    } catch (error) {
+        console.error(error);
+
+        if (gen === currentGeneration) {
+            pokemonList.innerText = "Unable to load Pokémon.";
+        }
     }
-
-    console.log(pokedex);
 }
 
-function updatePokemon() {
-    document.getElementById("pokemon-img").src = pokedex[this.id]["img"];
+async function updatePokemon() {
 
-    let typesDiv = document.getElementById("pokemon-types");
-    
-    while (typesDiv.firstChild) {
-        typesDiv.firstChild.remove();
+    let id = this.id;
+
+    selectedPokemon = id;
+
+    try {
+        await getPokemon(id);
+
+        if (selectedPokemon !== id) return;
+
+        let pokemon = pokedex[id];
+
+        document.getElementById("pokemon-img").src =
+            pokemon["img"];
+
+        let typesDiv = document.getElementById("pokemon-types");
+
+        while (typesDiv.firstChild) {
+            typesDiv.firstChild.remove();
+        }
+
+        let types = pokemon["types"];
+
+        for (let i = 0; i < types.length; i++) {
+
+            let type = document.createElement("span");
+
+            type.innerText =
+                types[i]["type"]["name"].toUpperCase();
+
+            type.classList.add("type-box");
+
+            type.classList.add(types[i]["type"]["name"]);
+
+            typesDiv.append(type);
+        }
+
+        let description =
+            document.getElementById("pokemon-description");
+
+        description.innerText = pokemon["desc"];
+        description.style.display = "block";
+
+    } catch (error) {
+        console.error("Error loading Pokémon:", error);
     }
-
-    let types = pokedex[this.id]["types"];
-
-    for (let i = 0; i < types.length; i ++){
-        let type = document.createElement("span");
-        type.innerText = types[i]["type"]["name"].toUpperCase();
-        type.classList.add("type-box");
-        type.classList.add(types[i]["type"]["name"]); //add bg and fot color
-        typesDiv.append(type);
-    }
-
-    document.getElementById("pokemon-description").innerText = pokedex[this.id]["desc"];
-    document.getElementById("pokemon-description").style.display = "block";
 }
 
 async function getPokemon(num) {
-    let url = "https://pokeapi.co/api/v2/pokemon/" + num.toString();
+
+    if (pokedex[num]) return;
+
+    let url = "https://pokeapi.co/api/v2/pokemon/" + num;
 
     let res = await fetch(url);
+
+    if (!res.ok) {
+        throw new Error("Failed to load Pokémon " + num);
+    }
+
     let pokemon = await res.json();
-    console.log(pokemon);
 
     let pokemonName = pokemon["name"];
     let pokemonType = pokemon["types"];
     let pokemonImg = pokemon["sprites"]["front_default"];
 
     res = await fetch(pokemon["species"]["url"]);
-    let pokemonDesc = await res.json();
-    console.log(pokemonDesc)
 
-    pokemonDesc = pokemonDesc["flavor_text_entries"][9]["flavor_text"];
+    if (!res.ok) {
+        throw new Error("Failed to load Pokémon description");
+    }
 
-    pokedex[num] = {"name" : pokemonName, "img" : pokemonImg, "types" : pokemonType, "desc" : pokemonDesc};
+    let pokemonSpecies = await res.json();
+
+    let pokemonDesc = pokemonSpecies["flavor_text_entries"]
+        .find(entry => entry.language.name === "en");
+
+    let description = pokemonDesc
+        ? pokemonDesc["flavor_text"].replace(/\s+/g, " ")
+        : "No description available.";
+
+    pokedex[num] = {
+        "name": pokemonName,
+        "img": pokemonImg,
+        "types": pokemonType,
+        "desc": description
+    };
+}
+
+function resetPokemon() {
+
+    selectedPokemon = null;
+
+    document.getElementById("pokemon-img").src =
+        "./pb-transparent.png";
+
+    document.getElementById("pokemon-types").innerHTML = "";
+
+    let description =
+        document.getElementById("pokemon-description");
+
+    description.innerText = "";
+    description.style.display = "none";
 }
