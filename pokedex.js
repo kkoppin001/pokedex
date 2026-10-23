@@ -12,10 +12,10 @@ const generations = {
 
 var pokedex = {};
 
-let currentGeneration = 1;
+let currentGeneration = null;
 let selectedPokemon = null;
 
-window.onload = async function() {
+window.onload = function() {
 
     let tabs = document.querySelectorAll(".gen-tab");
 
@@ -36,8 +36,6 @@ window.onload = async function() {
             await loadGeneration(gen);
         });
     });
-
-    await loadGeneration(1);
 };
 
 async function loadGeneration(gen) {
@@ -75,6 +73,7 @@ async function loadGeneration(gen) {
             )
             .sort((a, b) => a.id - b.id);
 
+        // Ignore results from an older tab.
         if (gen !== currentGeneration) return;
 
         pokemonList.innerHTML = "";
@@ -116,6 +115,7 @@ async function updatePokemon() {
     try {
         await getPokemon(id);
 
+        // Ignore outdated selections.
         if (selectedPokemon !== id) return;
 
         let pokemon = pokedex[id];
@@ -158,6 +158,7 @@ async function updatePokemon() {
 
 async function getPokemon(num) {
 
+    // Use cached data if available.
     if (pokedex[num]) return;
 
     let url = "https://pokeapi.co/api/v2/pokemon/" + num;
@@ -196,13 +197,10 @@ async function getPokemon(num) {
         "desc": description
     };
 }
-
 function resetPokemon() {
 
     selectedPokemon = null;
-
-    document.getElementById("pokemon-img").src =
-        "./pb-transparent.png";
+    document.getElementById("pokemon-img").src ="./images/pb-transparent.png";
 
     document.getElementById("pokemon-types").innerHTML = "";
 
