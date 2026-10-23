@@ -23,14 +23,14 @@ body {
 }
 
 #pokemon-info{
-    width: 250px;
-    height: 500px;
+    width: 50%;
+    height: 100%;
     text-align: center;
 }
 
 #pokemon-list {
-    width: 250px;
-    height: 500px;
+    width: 50%;
+    height: 100%;
     font-size: 18px;
     overflow-y: auto;
 }
