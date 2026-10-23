@@ -183,6 +183,8 @@ body {
     text-align: left;
 
     overflow-y: auto;
+
+    /* Hidden until Pokemon selected */
     display: none;
 }
 
@@ -242,16 +244,17 @@ body {
         background-color 0.2s ease;
 }
 
+/* Hover effect */
 .gen-tab:hover {
     width: 85px;
     background-color: #b52b27;
 }
 
+/* Selected generation */
 .gen-tab.active {
     width: 85px;
     background-color: #8b0000;
 }
-
 
 @media (max-width: 650px) {
 
