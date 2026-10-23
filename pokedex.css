@@ -1,5 +1,5 @@
 body {
-    background-image: url("./pokemon-bg.jpg");
+    background-image: url("./images/pokemon-bg.jpg");
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;
@@ -29,7 +29,7 @@ body {
     border: 10px solid lightgray;
     border-radius: 10px;
 
-    background: url("./pokeball.jpg") no-repeat center;
+    background: url("./images/pokeball.jpg") no-repeat center;
     background-size: cover;
 
     display: flex;
