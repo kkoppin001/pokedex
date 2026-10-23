@@ -16,8 +16,6 @@ window.onload = async function() {
         document.getElementById("pokemon-list").append(pokemon);
     }
 
-    document.getElementById("pokemon-description").innerText = pokedex[1]["desc"];
-
     console.log(pokedex);
 }
 
@@ -41,6 +39,7 @@ function updatePokemon() {
     }
 
     document.getElementById("pokemon-description").innerText = pokedex[this.id]["desc"];
+    document.getElementById("pokemon-description").style.display = "block";
 }
 
 async function getPokemon(num) {
